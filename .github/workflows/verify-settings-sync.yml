@@ -1,0 +1,36 @@
+name: Verify settings sync contribution
+
+on:
+  push:
+    branches: [verify/settings-sync-cloud]
+
+permissions:
+  contents: read
+
+jobs:
+  production-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    env:
+      NODE_OPTIONS: --max-old-space-size=8192
+      NEXT_TELEMETRY_DISABLED: '1'
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - name: Initialize frontend source dependencies
+        run: >-
+          git submodule update --init --depth=1
+          packages/foliate-js packages/js-mdict packages/simplecc-wasm
+          apps/readest-app/src-tauri/plugins/tauri-plugin-turso
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: 24
+          cache: pnpm
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile --ignore-scripts
+      - name: Prepare vendor assets
+        run: pnpm --filter @readest/readest-app setup-vendors
+      - name: Build production frontend
+        run: pnpm --filter @readest/readest-app build
+      - name: Build production web app and check output
+        run: pnpm --filter @readest/readest-app build-web && pnpm --filter @readest/readest-app check:all
