@@ -17,7 +17,7 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
-          ref: 8a4640d
+          ref: 8a4640d59d749fc88a54fbd0adcd10429775aa76
       - name: Initialize frontend source dependencies
         run: >-
           git submodule update --init --depth=1
