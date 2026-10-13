@@ -1,4 +1,4 @@
-name: Verify settings sync contribution
+name: Verify upstream output compatibility baseline
 
 on:
   push:
@@ -16,6 +16,8 @@ jobs:
       NEXT_TELEMETRY_DISABLED: '1'
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: 8a4640d
       - name: Initialize frontend source dependencies
         run: >-
           git submodule update --init --depth=1
@@ -34,3 +36,7 @@ jobs:
         run: pnpm --filter @readest/readest-app build
       - name: Build production web app and check output
         run: pnpm --filter @readest/readest-app build-web && pnpm --filter @readest/readest-app check:all
+      - name: Identify incompatible output files
+        if: failure()
+        working-directory: apps/readest-app
+        run: grep -rnlE '\(\?<[!=]' .next/static/chunks/ out/_next/static/chunks/ || true
